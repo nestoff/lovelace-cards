@@ -1,88 +1,57 @@
-# Blue Pill / Reactor setup for DIT Browse
+# Blue Pill / Reactor setup for DIT Browse (Probel SW-P-08)
 
-This fork ships `core-ditbrowse`, a SKAARHOJ device core that speaks DIT Browse’s existing control WebSocket and exposes camera selection as a **Routing Trigger** target.
+DIT Browse can emulate a small **Probel SW-P-08** video router. SKAARHOJ already ships an SW-P-08 device core, so you do **not** need a custom `core-ditbrowse` package (and you avoid the unsigned `.ipks` verification problem).
 
-## 1. Enable LAN API on the Mac
+## How it maps
 
-1. Launch DIT Browse.
-2. Open **Settings → Local API**.
-3. Enable **Allow LAN access (Blue Pill / Skaarhoj)**.
-4. Confirm the advertised address (example: `192.168.10.50:52780`).
+| SW-P-08 | DIT Browse |
+| --- | --- |
+| Source `N` | Camera number `N` |
+| Destination `1` (default Focus) | Focus / expand that camera |
+| Matrix `1`, Level `1` | Defaults in Settings |
 
-Loopback (`127.0.0.1`) remains the default so Bitfocus Companion keeps working unchanged on the same Mac.
+When Reactor’s **Routing Triggers** route source `3` → destination `1`, DIT Browse focuses camera `3`.
 
-## 2. Install `core-ditbrowse` on Blue Pill
+## 1. Enable SW-P-08 in DIT Browse
 
-### Important: web upload will fail on unsigned packages
+1. Open **Settings** (camera list / tools).
+2. Find **Probel SW-P-08 (Blue Pill)**.
+3. Enable **Enable SW-P-08 server**.
+4. Note the advertised host + port (default **8910**).
 
-If you see **Verification failed, File corrupted or invalid** when uploading `core-ditbrowse.ipks`, that is expected for community builds.
+The server binds on all interfaces (`0.0.0.0`) so the Blue Pill can reach the Mac.
 
-Blue Pill offline install verifies a **SKAARHOJ package signature**. Only packages built/signed with their `skaarOS-cli` keys pass. Our GitHub `.ipks` were unsigned (an `.ipk` with the wrong extension) and will always fail that check.
+## 2. Add the stock SW-P-08 core on Blue Pill
 
-### Install via SSH sideload (works without a signature)
-
-From this repo:
-
-```bash
-cd core-ditbrowse
-./scripts/pack-sideload.sh
-./scripts/push-sideload.sh <BLUE_PILL_IP>
-```
-
-Or download `core-ditbrowse-sideload.tar.gz` from the release, extract it, then:
-
-```bash
-scp -r core-ditbrowse-sideload root@<BLUE_PILL_IP>:/tmp/
-ssh root@<BLUE_PILL_IP> 'sh /tmp/core-ditbrowse-sideload/install-on-bluepill.sh'
-```
-
-To open SSH if it is disabled, connect over USB serial (SKAARHOJ Discovery / Updater → Serial Monitor) and run:
-
-```text
-support=1
-```
-
-If you cannot get SSH, contact **support@skaarhoj.com** and ask them to sign the package or assist with a support sideload.
-
-### Then add the device in Reactor
+1. Packages → install **Probel SW-P-08** if needed (online from SKAARHOJ).
+2. Home → **Add device** → choose the **configurable SW-P-08** model.
+3. Set:
 
 | Field | Value |
 | --- | --- |
-| IP | Mac LAN address |
-| Port | `52780` (or your Local API port) |
+| IP | Mac LAN address (shown in DIT Browse settings) |
+| Port | `8910` (or your SW-P-08 port) |
+| Matrix ID | `1` |
+| Sources | `64` (or match Settings) |
+| Destinations | `1` |
+| Levels | `1` |
 
 ## 3. Wire Camera Select → Routing Triggers
 
-### Goal
-
-When an operator presses a camera on the Skaarhoj panel:
-
-1. The video router / switcher aux changes (optional, existing workflow).
-2. DIT Browse expands that same camera number on the DIT wall.
-
-### Steps
-
-1. In Reactor, open your panel configuration’s **Camera Select** table.
+1. In Reactor, open **Camera Select**.
 2. For each camera row, set **Route Index** to the DIT Browse camera number (`1`, `2`, …).
 3. Open **Routing Triggers**.
-4. Add a destination row bound to the **DIT Browse** device (`core-ditbrowse`), using the Routing / `route` snippet. Set ME/Bus as needed (use destination `1` if you only need one logical “focus” bus).
-5. Optionally add another Routing Triggers row for ATEM Aux / Blackmagic Videohub / etc. Add matching Route Index cells for each destination.
+4. Add a destination row bound to the **SW-P-08** device:
+   - Destination / bus = `1` (Focus)
+   - Route Index drives the **source**
+5. Optionally add another Routing Triggers row for ATEM Aux / Videohub / etc.
 
-Selecting Cam 3 now fires both triggers with Route Index `3`: the switcher routes input 3, and `core-ditbrowse` focuses camera 3.
+Selecting Cam 3 fires Route Index `3` → SW-P-08 source `3` → dest `1` → DIT Browse focuses camera 3.
 
-## 4. Alternate: bind panel buttons directly
+## 4. Local API (Companion) is separate
 
-Map hardware buttons to:
+The WebSocket Local API (`ws://…:52780/api/ws`) remains for Bitfocus Companion. SW-P-08 is the Blue Pill path.
 
-- `selected_camera` = `N`
-- or `camera_select` (dynamic list from live DIT Browse status)
+## Legacy custom core
 
-Use `route_index` feedback with Virtual Triggers if you need to sync Ext. Cam Number across panels.
-
-## Protocol reference
-
-Same as Companion:
-
-- `ws://<host>:<port>/api/ws`
-- protocol `ditbrowse.control` version `1`
-- commands: `status`, `focusCamera`, `showGrid`, `toggleExpansion`
+`core-ditbrowse/` is deprecated in favor of SW-P-08. Prefer the built-in protocol above.

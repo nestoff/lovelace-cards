@@ -14,6 +14,7 @@ import type {
   CompanionModuleInstallResult,
   CompanionModuleInstallStatus
 } from "../../shared/companionModule";
+import type { Swp08Config, Swp08Info } from "../../shared/swp08Config";
 
 declare global {
   interface Window {
@@ -31,12 +32,15 @@ declare global {
       getControlApiInfo?: () => Promise<ControlApiInfo>;
       setControlApiPort?: (port: number | null) => Promise<ControlApiInfo>;
       setControlApiBindHost?: (bindHost: ControlApiBindHost) => Promise<ControlApiInfo>;
+      getSwp08Info?: () => Promise<Swp08Info | null>;
+      setSwp08Config?: (patch: Partial<Swp08Config>) => Promise<Swp08Info>;
       getCompanionModuleInstallStatus?: () => Promise<CompanionModuleInstallStatus>;
       installCompanionModule?: () => Promise<CompanionModuleInstallResult>;
       chooseAndInstallCompanionModule?: () => Promise<
         CompanionModuleInstallResult | null
       >;
       onControlApiInfo?: (callback: (info: ControlApiInfo) => void) => () => void;
+      onSwp08Info?: (callback: (info: Swp08Info) => void) => () => void;
       onControlApiCommand?: (callback: (command: ControlApiCommand) => void) => () => void;
       sendControlApiResponse?: (requestId: string, response: ControlApiResponse) => void;
       publishControlApiStatus?: (status: ControlApiStatus) => void;

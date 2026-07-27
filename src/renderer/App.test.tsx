@@ -134,7 +134,32 @@ describe("App control API commands", () => {
         bindHost,
         lanAccess: bindHost === "0.0.0.0"
       })),
+      getSwp08Info: vi.fn(async () => ({
+        enabled: false,
+        host: "127.0.0.1",
+        port: 8910,
+        matrix: 1,
+        levels: 1,
+        sources: 64,
+        destinations: 1,
+        focusDestination: 1,
+        listening: false,
+        clientCount: 0
+      })),
+      setSwp08Config: vi.fn(async (patch) => ({
+        enabled: Boolean(patch.enabled),
+        host: "127.0.0.1",
+        port: patch.port ?? 8910,
+        matrix: 1,
+        levels: 1,
+        sources: 64,
+        destinations: 1,
+        focusDestination: 1,
+        listening: Boolean(patch.enabled),
+        clientCount: 0
+      })),
       onControlApiInfo: vi.fn(() => vi.fn()),
+      onSwp08Info: vi.fn(() => vi.fn()),
       getCompanionModuleInstallStatus: vi.fn(async () => ({
         state: "missing" as const,
         pathSource: "companion" as const,

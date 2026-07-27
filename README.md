@@ -1,27 +1,25 @@
 # DITBrowse + Skaarhoj Blue Pill (fork)
 
-Fork of [Lightlab24/DITBrowse](https://github.com/Lightlab24/DITBrowse) with a **custom SKAARHOJ Blue Pill / Reactor device core** that selects DIT Browse cameras and acts as a **Routing Trigger** destination.
+Fork of [Lightlab24/DITBrowse](https://github.com/Lightlab24/DITBrowse) with **Probel SW-P-08** router emulation so Blue Pill can select cameras using SKAARHOJ’s existing SW-P-08 device core (no custom unsigned `.ipks`).
 
 Upstream releases: https://github.com/Lightlab24/DITBrowse/releases
 
 ## What’s new in this fork
 
-1. **LAN Local API** — Settings → Local API → *Allow LAN access (Blue Pill / Skaarhoj)* binds `0.0.0.0` so a Blue Pill on the network can reach DIT Browse (still defaults to loopback for Companion).
-2. **`core-ditbrowse`** — Go device core for Reactor:
-   - Camera select / focus by integer camera number
-   - `GenericType_Routing` parameter for Blue Pill **Routing Triggers**
-   - Grid / expansion controls matching the Companion module protocol
+1. **Probel SW-P-08 server** — Settings → *Probel SW-P-08 (Blue Pill)*. Routing source `N` → destination `1` focuses camera `N`.
+2. **LAN Local API** — optional bind `0.0.0.0` for Companion / tools on the LAN (still defaults to loopback).
 
 ## Quick start (Blue Pill routing)
 
 ```text
-Skaarhoj panel Camera Select
-    → Route Index = DIT Browse camera number
-    → Routing Triggers row #1 → Videohub / ATEM Aux  (video)
-    → Routing Triggers row #2 → core-ditbrowse.route (focus DIT Browse tile)
+Enable SW-P-08 in DIT Browse (port 8910)
+    → Blue Pill: add configurable Probel SW-P-08 device (Matrix 1)
+    → Camera Select Route Index = camera number
+    → Routing Triggers → SW-P-08 dest 1 (Focus)
+    → (optional) second trigger → Videohub / ATEM Aux
 ```
 
-See [core-ditbrowse/README.md](./core-ditbrowse/README.md) for install and parameter details.
+See [docs/skaarhoj/blue-pill-routing-triggers.md](./docs/skaarhoj/blue-pill-routing-triggers.md).
 
 ## Layout
 
@@ -29,18 +27,14 @@ See [core-ditbrowse/README.md](./core-ditbrowse/README.md) for install and param
 | --- | --- |
 | `src/` | DIT Browse Electron app (forked) |
 | `companion-module-lightlab-ditbrowse/` | Upstream Bitfocus Companion module |
-| `core-ditbrowse/` | **New** SKAARHOJ Blue Pill device core |
-| `docs/skaarhoj/` | Blue Pill setup notes |
+| `docs/skaarhoj/` | Blue Pill / SW-P-08 setup notes |
+| `core-ditbrowse/` | Deprecated custom core (prefer SW-P-08) |
 
 ## Development
 
 ```bash
-# App
 npm install
 npm test
-
-# Skaarhoj core
-cd core-ditbrowse && go test ./... && go build .
 ```
 
 ## Upstream

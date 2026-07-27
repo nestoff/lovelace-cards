@@ -37,6 +37,19 @@ function createWorkspaceSettings(
     },
     onSetControlApiPort: vi.fn(async () => undefined),
     onSetControlApiBindHost: vi.fn(async () => undefined),
+    swp08Info: {
+      enabled: false,
+      host: "127.0.0.1",
+      port: 8910,
+      matrix: 1,
+      levels: 1,
+      sources: 64,
+      destinations: 1,
+      focusDestination: 1,
+      listening: false,
+      clientCount: 0
+    },
+    onSetSwp08Config: vi.fn(async () => undefined),
     companionModuleStatus: {
       state: "current",
       pathSource: "companion",

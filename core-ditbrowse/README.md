@@ -1,6 +1,11 @@
-# core-ditbrowse
+# core-ditbrowse (deprecated)
 
-SKAARHOJ Blue Pill / Reactor **device core** for [DIT Browse](https://github.com/Lightlab24/DITBrowse).
+> **Prefer the built-in Probel SW-P-08 server in DIT Browse.**
+> See [docs/skaarhoj/blue-pill-routing-triggers.md](../docs/skaarhoj/blue-pill-routing-triggers.md).
+>
+> This custom Go device core required a SKAARHOJ-signed `.ipks`, which community builds cannot produce. SW-P-08 uses the stock Blue Pill core instead.
+
+SKAARHOJ Blue Pill / Reactor **device core** for [DIT Browse](https://github.com/Lightlab24/DITBrowse) — kept for reference only.
 
 This core lets a Skaarhoj panel **select cameras in DIT Browse** and participate in Blue Pill **Camera Select → Routing Triggers**.
 

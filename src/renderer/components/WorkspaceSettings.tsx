@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Download, ListRestart, Maximize2, RotateCcw, Trash2 } from "lucide-react";
 import type { ControlApiBindHost, ControlApiInfo } from "../../shared/controlApi";
 import type { CompanionModuleInstallStatus } from "../../shared/companionModule";
+import type { Swp08Config, Swp08Info } from "../../shared/swp08Config";
 import {
   MAX_HOST_PING_INTERVAL_SECONDS,
   MIN_HOST_PING_INTERVAL_SECONDS
@@ -42,6 +43,8 @@ export interface WorkspaceSettingsProps {
   controlApiInfo: ControlApiInfo | null;
   onSetControlApiPort: (port: number | null) => Promise<void>;
   onSetControlApiBindHost: (bindHost: ControlApiBindHost) => Promise<void>;
+  swp08Info: Swp08Info | null;
+  onSetSwp08Config: (patch: Partial<Swp08Config>) => Promise<void>;
   companionModuleStatus: CompanionModuleInstallStatus | null;
   companionModuleBusy: boolean;
   companionModuleError: string;
@@ -94,6 +97,8 @@ export function WorkspaceSettings({
   controlApiInfo,
   onSetControlApiPort,
   onSetControlApiBindHost,
+  swp08Info,
+  onSetSwp08Config,
   companionModuleStatus,
   companionModuleBusy,
   companionModuleError,
@@ -103,6 +108,8 @@ export function WorkspaceSettings({
 }: WorkspaceSettingsProps): ReactElement {
   const [portDraft, setPortDraft] = useState("");
   const [portError, setPortError] = useState("");
+  const [swp08PortDraft, setSwp08PortDraft] = useState("8910");
+  const [swp08Error, setSwp08Error] = useState("");
   const [pingIntervalDraft, setPingIntervalDraft] = useState(
     String(pingIntervalSeconds)
   );
@@ -116,6 +123,11 @@ export function WorkspaceSettings({
     setPortDraft(controlApiInfo?.configuredPort ? String(controlApiInfo.configuredPort) : "");
     setPortError(controlApiInfo?.error ?? "");
   }, [controlApiInfo]);
+
+  useEffect(() => {
+    setSwp08PortDraft(String(swp08Info?.port ?? 8910));
+    setSwp08Error(swp08Info?.error ?? "");
+  }, [swp08Info]);
 
   useEffect(() => {
     setPingIntervalDraft(String(pingIntervalSeconds));
@@ -373,11 +385,12 @@ export function WorkspaceSettings({
           </code>
         </div>
         <p>
-          Companion connects on this computer. Enable LAN access so a Blue Pill /
-          Skaarhoj Reactor core can select cameras over the network.
+          Companion connects on this computer over the Local API. For SKAARHOJ Blue Pill
+          camera select / routing triggers, enable <strong>Probel SW-P-08</strong> below
+          and use the built-in SW-P-08 device core on the panel.
         </p>
         <label className="job-inline-field control-api-lan-toggle">
-          <span>Allow LAN access (Blue Pill / Skaarhoj)</span>
+          <span>Allow LAN access (Companion / tools on the network)</span>
           <input
             aria-label="Allow LAN access"
             type="checkbox"
@@ -398,7 +411,7 @@ export function WorkspaceSettings({
         </label>
         {controlApiInfo?.lanAccess && (
           <p className="control-api-lan-hint">
-            Listening on all interfaces. Point core-ditbrowse at{" "}
+            Local API listening on all interfaces at{" "}
             <code>{controlApiInfo.host}:{controlApiInfo.port}</code>.
           </p>
         )}
@@ -433,6 +446,85 @@ export function WorkspaceSettings({
           </div>
         </form>
         {portError && <p className="control-api-error">{portError}</p>}
+      </div>
+
+      <div className="workspace-settings-section control-api-section">
+        <div className="tools-section-header">
+          <span>Probel SW-P-08 (Blue Pill)</span>
+          <strong>
+            {swp08Info?.listening
+              ? `${swp08Info.host}:${swp08Info.port}`
+              : swp08Info?.enabled
+                ? "Starting…"
+                : "Off"}
+          </strong>
+        </div>
+        <p>
+          Emulates a small video router so SKAARHOJ can use its existing{" "}
+          <strong>SW-P-08</strong> device core. Routing source{" "}
+          <code>N</code> → destination <code>{swp08Info?.focusDestination ?? 1}</code>{" "}
+          focuses camera <code>N</code> in DIT Browse. Use Matrix{" "}
+          <code>{swp08Info?.matrix ?? 1}</code>,{" "}
+          {swp08Info?.sources ?? 64} sources / {swp08Info?.destinations ?? 1} destination,
+          level count {swp08Info?.levels ?? 1}.
+        </p>
+        <label className="job-inline-field control-api-lan-toggle">
+          <span>Enable SW-P-08 server</span>
+          <input
+            aria-label="Enable SW-P-08 server"
+            type="checkbox"
+            checked={Boolean(swp08Info?.enabled)}
+            onChange={(event) => {
+              void onSetSwp08Config({ enabled: event.target.checked }).catch((error) => {
+                setSwp08Error(
+                  error instanceof Error ? error.message : "Could not change SW-P-08."
+                );
+              });
+            }}
+          />
+        </label>
+        <form
+          className="control-api-form"
+          onSubmit={(event) => {
+            event.preventDefault();
+            const parsed = Number(swp08PortDraft.trim());
+            if (!Number.isInteger(parsed) || parsed < 1 || parsed > 65535) {
+              setSwp08Error("SW-P-08 port must be an integer between 1 and 65535");
+              return;
+            }
+            void onSetSwp08Config({ port: parsed }).catch((error) => {
+              setSwp08Error(
+                error instanceof Error ? error.message : "Could not set SW-P-08 port."
+              );
+            });
+          }}
+        >
+          <label className="job-inline-field">
+            <span>SW-P-08 port</span>
+            <input
+              aria-label="SW-P-08 port"
+              inputMode="numeric"
+              value={swp08PortDraft}
+              onChange={(event) => setSwp08PortDraft(event.target.value)}
+            />
+          </label>
+          <div className="control-api-actions">
+            <Button type="submit" variant="subtle" size="compact">
+              Save Port
+            </Button>
+          </div>
+        </form>
+        {swp08Info?.listening && (
+          <p className="control-api-lan-hint">
+            On Blue Pill: add device core <strong>Probel SW-P-08</strong> (configurable),
+            IP <code>{swp08Info.host}</code>, port <code>{swp08Info.port}</code>,
+            Matrix ID <code>{swp08Info.matrix}</code>.
+          </p>
+        )}
+        {swp08Error && <p className="control-api-error">{swp08Error}</p>}
+      </div>
+
+      <div className="workspace-settings-section control-api-section">
         <div
           className={`companion-module-status companion-module-${companionModuleStatus?.state ?? "checking"}`}
           aria-label="Companion module status"
