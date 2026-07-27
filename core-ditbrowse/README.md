@@ -25,19 +25,54 @@ Upstream DIT Browse binds its Local API to `127.0.0.1` only. This fork adds **Al
 
 ## Install on Blue Pill
 
-1. Build for linux/arm64 (typical Blue Pill):
+### Why “Verification failed, File corrupted or invalid”?
+
+Blue Pill **Packages → Upload and Install Package** only accepts **SKAARHOJ-signed `.ipks`** files (produced by their private `skaarOS-cli` signing keys).
+
+Our GitHub `.ipk` / renamed `.ipks` builds are **structurally valid but unsigned**. The panel correctly rejects them with that error. Renaming `.ipk` → `.ipks` does not help.
+
+### Recommended: SSH sideload (unsigned)
 
 ```bash
 cd core-ditbrowse
-go generate
-GOOS=linux GOARCH=arm64 go build -o core-ditbrowse .
+./scripts/pack-sideload.sh
+./scripts/push-sideload.sh <BLUE_PILL_IP>
 ```
 
-2. Copy the binary into the Blue Pill device-cores directory (or sideload via System Manager / your usual core packaging workflow).
-3. Restart Reactor / enable the core.
-4. Add a device pointing at the DIT Browse Mac IP.
+Or manually:
 
-Default gRPC listen port for this core is `:8517`.
+```bash
+./scripts/pack-sideload.sh
+scp -r dist/core-ditbrowse-sideload*  # extract first if you only have the .tar.gz
+# extract:
+tar -xzf dist/core-ditbrowse-sideload.tar.gz
+scp -r core-ditbrowse-sideload root@<BLUE_PILL_IP>:/tmp/
+ssh root@<BLUE_PILL_IP> 'sh /tmp/core-ditbrowse-sideload/install-on-bluepill.sh'
+```
+
+If SSH is closed, enable support mode from the USB serial console (SKAARHOJ Discovery / Updater → Serial Monitor):
+
+```text
+support=1
+```
+
+Then retry SSH as `root`. If that still fails, email **support@skaarhoj.com** and ask them to either open support access or **sign** `core-ditbrowse` into a real `.ipks`.
+
+### Unsigned `.ipk` (for `opkg` if available over SSH)
+
+```bash
+./scripts/pack-ipk.sh
+# on Blue Pill, if opkg works:
+#   opkg install /tmp/core-ditbrowse.ipk
+```
+
+Do **not** upload this via the web Packages UI.
+
+### After install
+
+1. Reboot the Blue Pill if `core-ditbrowse` does not show under Packages.
+2. Add a device pointing at the DIT Browse Mac IP (port `52780`).
+3. Default gRPC listen port for this core is `:8517`.
 
 ## Blue Pill: Camera Select + Routing Triggers
 
@@ -65,6 +100,8 @@ Map panel buttons to `selected_camera` or `camera_select` on the DIT Browse devi
 ```bash
 go test ./...
 go build -o core-ditbrowse .
+./scripts/pack-sideload.sh
+./scripts/pack-ipk.sh
 ```
 
 Protocol: DIT Browse WebSocket `ws://<host>:<port>/api/ws` (`ditbrowse.control` v1), same as the Bitfocus Companion module.

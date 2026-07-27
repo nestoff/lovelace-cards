@@ -13,14 +13,38 @@ Loopback (`127.0.0.1`) remains the default so Bitfocus Companion keeps working u
 
 ## 2. Install `core-ditbrowse` on Blue Pill
 
-Build:
+### Important: web upload will fail on unsigned packages
+
+If you see **Verification failed, File corrupted or invalid** when uploading `core-ditbrowse.ipks`, that is expected for community builds.
+
+Blue Pill offline install verifies a **SKAARHOJ package signature**. Only packages built/signed with their `skaarOS-cli` keys pass. Our GitHub `.ipks` were unsigned (an `.ipk` with the wrong extension) and will always fail that check.
+
+### Install via SSH sideload (works without a signature)
+
+From this repo:
 
 ```bash
 cd core-ditbrowse
-GOOS=linux GOARCH=arm64 go build -o core-ditbrowse .
+./scripts/pack-sideload.sh
+./scripts/push-sideload.sh <BLUE_PILL_IP>
 ```
 
-Deploy with your usual Blue Pill core sideload process, then add a device:
+Or download `core-ditbrowse-sideload.tar.gz` from the release, extract it, then:
+
+```bash
+scp -r core-ditbrowse-sideload root@<BLUE_PILL_IP>:/tmp/
+ssh root@<BLUE_PILL_IP> 'sh /tmp/core-ditbrowse-sideload/install-on-bluepill.sh'
+```
+
+To open SSH if it is disabled, connect over USB serial (SKAARHOJ Discovery / Updater → Serial Monitor) and run:
+
+```text
+support=1
+```
+
+If you cannot get SSH, contact **support@skaarhoj.com** and ask them to sign the package or assist with a support sideload.
+
+### Then add the device in Reactor
 
 | Field | Value |
 | --- | --- |

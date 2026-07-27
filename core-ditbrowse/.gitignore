@@ -1,5 +1,10 @@
-*.exe
-*.test
 /core-ditbrowse
+core-ditbrowse
 /core-ditbrowse-linux-*
+/dist/
+*.exe
 .gitvars.go
+*.ipk
+*.ipks
+!scripts/
+*.test
