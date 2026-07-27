@@ -15,6 +15,7 @@ import type {
   PasswordRecord
 } from "../../shared/types";
 import { JobListSelector } from "./JobListSelector";
+import { Swp08SetupGuide } from "./Swp08SetupGuide";
 import { Button } from "./ui/Button";
 import { CompanionModuleSetupDialog } from "./CompanionModuleSetupDialog";
 
@@ -460,13 +461,10 @@ export function WorkspaceSettings({
           </strong>
         </div>
         <p>
-          Emulates a small video router so SKAARHOJ can use its existing{" "}
-          <strong>SW-P-08</strong> device core. Routing source{" "}
-          <code>N</code> → destination <code>{swp08Info?.focusDestination ?? 1}</code>{" "}
-          focuses camera <code>N</code> in DIT Browse. Use Matrix{" "}
-          <code>{swp08Info?.matrix ?? 1}</code>,{" "}
-          {swp08Info?.sources ?? 64} sources / {swp08Info?.destinations ?? 1} destination,
-          level count {swp08Info?.levels ?? 1}.
+          DIT Browse acts as a small SW-P-08 router. Use SKAARHOJ&apos;s stock{" "}
+          <strong>Probel SW-P-08 → Configurable Model</strong> — no custom core package.
+          Routing source <code>N</code> → destination{" "}
+          <code>{swp08Info?.focusDestination ?? 1}</code> focuses camera <code>N</code>.
         </p>
         <label className="job-inline-field control-api-lan-toggle">
           <span>Enable SW-P-08 server</span>
@@ -514,14 +512,9 @@ export function WorkspaceSettings({
             </Button>
           </div>
         </form>
-        {swp08Info?.listening && (
-          <p className="control-api-lan-hint">
-            On Blue Pill: add device core <strong>Probel SW-P-08</strong> (configurable),
-            IP <code>{swp08Info.host}</code>, port <code>{swp08Info.port}</code>,
-            Matrix ID <code>{swp08Info.matrix}</code>.
-          </p>
-        )}
         {swp08Error && <p className="control-api-error">{swp08Error}</p>}
+
+        <Swp08SetupGuide info={swp08Info} />
       </div>
 
       <div className="workspace-settings-section control-api-section">

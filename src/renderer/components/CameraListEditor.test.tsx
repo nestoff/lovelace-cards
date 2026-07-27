@@ -41,7 +41,7 @@ function createWorkspaceSettings(
       enabled: false,
       host: "127.0.0.1",
       port: 8910,
-      matrix: 1,
+      matrix: 0,
       levels: 1,
       sources: 64,
       destinations: 1,

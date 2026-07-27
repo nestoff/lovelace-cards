@@ -95,7 +95,7 @@ export async function startSwp08Server(options: Swp08ServerOptions): Promise<Swp
     throw new Error("SW-P-08 server is disabled");
   }
 
-  const matrix = uiToProtocol(config.matrix);
+  const matrix = config.matrix;
   const level = 0;
   const focusDest = uiToProtocol(config.focusDestination);
   const state = new RouterState(config);

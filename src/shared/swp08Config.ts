@@ -5,18 +5,18 @@ export interface Swp08Config {
   enabled: boolean;
   port: number;
   /**
-   * Matrix number as shown in SKAARHOJ / Companion UI (1-based).
-   * Protocol uses matrix-1.
+   * MatrixID as typed in SKAARHOJ Configurable Model (protocol / 0-based, typically 0).
    */
   matrix: number;
-  /** Number of levels (UI/count). We always operate on level 1. */
+  /** Number of levels advertised to the Blue Pill core settings. */
   levels: number;
   /** How many sources (cameras) to advertise. */
   sources: number;
   /** How many destinations to advertise (1 = Focus). */
   destinations: number;
   /**
-   * Destination that focuses a camera when a source is routed to it (1-based UI).
+   * Destination that focuses a camera when a source is routed to it (1-based,
+   * matching Reactor destination numbering).
    */
   focusDestination: number;
 }
@@ -24,7 +24,7 @@ export interface Swp08Config {
 export const DEFAULT_SWP08_CONFIG: Swp08Config = {
   enabled: false,
   port: SWP08_DEFAULT_PORT,
-  matrix: 1,
+  matrix: 0,
   levels: 1,
   sources: 64,
   destinations: 1,
@@ -47,13 +47,19 @@ export function normalizePositiveInt(value: unknown, label: string, min = 1, max
   return parsed;
 }
 
+export function normalizeMatrixId(value: unknown): number {
+  const parsed = typeof value === "number" ? value : Number(value);
+  if (!Number.isInteger(parsed) || parsed < 0 || parsed > 15) {
+    throw new Error("SW-P-08 MatrixID must be an integer between 0 and 15");
+  }
+  return parsed;
+}
+
 export function normalizeSwp08Config(raw: Partial<Swp08Config> | null | undefined): Swp08Config {
   const enabled = Boolean(raw?.enabled);
   const port = raw?.port === undefined ? DEFAULT_SWP08_CONFIG.port : normalizeSwp08Port(raw.port);
   const matrix =
-    raw?.matrix === undefined
-      ? DEFAULT_SWP08_CONFIG.matrix
-      : normalizePositiveInt(raw.matrix, "SW-P-08 matrix", 1, 16);
+    raw?.matrix === undefined ? DEFAULT_SWP08_CONFIG.matrix : normalizeMatrixId(raw.matrix);
   const levels =
     raw?.levels === undefined
       ? DEFAULT_SWP08_CONFIG.levels

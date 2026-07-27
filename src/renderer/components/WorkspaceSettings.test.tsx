@@ -41,7 +41,7 @@ function createProps(
       enabled: false,
       host: "127.0.0.1",
       port: 8910,
-      matrix: 1,
+      matrix: 0,
       levels: 1,
       sources: 64,
       destinations: 1,
@@ -201,7 +201,7 @@ describe("WorkspaceSettings", () => {
             enabled: false,
             host: "192.168.1.10",
             port: 8910,
-            matrix: 1,
+            matrix: 0,
             levels: 1,
             sources: 64,
             destinations: 1,
@@ -212,6 +212,10 @@ describe("WorkspaceSettings", () => {
         })}
       />
     );
+
+    expect(screen.getByLabelText("Blue Pill SW-P-08 setup guide")).toBeInTheDocument();
+    expect(screen.getByRole("row", { name: /MatrixID/i })).toHaveTextContent("0");
+    expect(screen.getByRole("row", { name: /Port/i })).toHaveTextContent("8910");
 
     fireEvent.click(screen.getByLabelText("Enable SW-P-08 server"));
     await waitFor(() => expect(onSetSwp08Config).toHaveBeenCalledWith({ enabled: true }));
